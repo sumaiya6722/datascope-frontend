@@ -1,0 +1,36 @@
+{
+  "name": "datascope-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@better-auth/mongo-adapter": "^1.7.23",
+    "@reduxjs/toolkit": "^2.14.0",
+    "better-auth": "^1.7.22",
+    "next": "^16.4.6",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-redux": "^9.3.1",
+    "recharts": "^3.10.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@next/eslint-plugin-next": "^16.4.6",
+    "@tailwindcss/postcss": "^4.3.5",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^17.14.0",
+    "postcss": "^8.5.32",
+    "tailwindcss": "^4.3.5"
+  }
+}
