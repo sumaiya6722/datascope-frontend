@@ -4,6 +4,10 @@ Web client for **DataScope**, a role-based data exploration platform. It provide
 
 Built with Next.js (App Router), React, Redux Toolkit / RTK Query, Tailwind CSS, and Recharts. It talks to the [DataScope backend](https://github.com/sumaiya6722/datascope-backend), which owns authentication and all authorization decisions.
 
+### Live Demo
+
+🌐 **Frontend:** [View Live Application](https://datascope-frontend-five.vercel.app/)
+
 ## Contents
 
 - [Features](#features)
