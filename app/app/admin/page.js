@@ -3,13 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useGetAdminAnalyticsQuery, useGetAdminUsersQuery, useUpdateUserRoleMutation } from "../../../store/services/data-scope-api.js";
-import { authClient } from "../../../lib/auth-client.js";
+import { useDataScopeSession } from "../../../lib/use-data-scope-session.js";
 import { hasPermission } from "../../../lib/permissions.js";
 
 export default function AdministrationPage() {
   const router = useRouter();
-  const { data: session, isPending } = authClient.useSession();
-  const canManageUsers = hasPermission(session?.user.role, "user:manage");
+  const { data: session, isPending } = useDataScopeSession();
+  const canManageUsers = hasPermission(session?.user.permissions, "user:manage");
   const {
     data: analytics,
     error: analyticsError,
@@ -41,7 +41,7 @@ export default function AdministrationPage() {
     return <main className="mx-auto max-w-5xl px-6 py-16 text-slate-400">Loading...</main>;
   }
 
-  if (!hasPermission(session.user.role, "user:manage")) {
+  if (!hasPermission(session.user.permissions, "user:manage")) {
     return (
       <main className="mx-auto max-w-5xl px-6 py-16">
         <h1 className="text-3xl font-semibold">Forbidden</h1>

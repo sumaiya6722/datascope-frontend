@@ -5,17 +5,15 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { authClient } from "../lib/auth-client.js";
-import { getRolePermissions, hasPermission } from "../lib/permissions.js";
-import { useGetCurrentUserQuery } from "../store/services/data-scope-api.js";
+import { hasPermission } from "../lib/permissions.js";
+import { useDataScopeSession } from "../lib/use-data-scope-session.js";
+import { dataScopeApi } from "../store/services/data-scope-api.js";
 import { clearSafeUser, setSafeUser } from "../store/slices/authentication-slice.js";
 
 export default function AuthenticatedNavigation() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { data: session, isPending } = authClient.useSession();
-  const { data: meResult } = useGetCurrentUserQuery(undefined, {
-    skip: isPending || !session,
-  });
+  const { data: session, isPending } = useDataScopeSession();
   const [errorMessage, setErrorMessage] = useState("");
   const safeUser = useSelector((state) => state.authentication.user);
 
@@ -26,14 +24,13 @@ export default function AuthenticatedNavigation() {
 
     if (!session) {
       dispatch(clearSafeUser());
+      dispatch(dataScopeApi.util.resetApiState());
       return;
     }
 
-    const activeUser = meResult?.user ?? session.user;
+    const activeUser = session.user;
     const role = activeUser.role ?? "viewer";
-    const permissions = activeUser.permissions?.length
-      ? activeUser.permissions
-      : getRolePermissions(role);
+    const permissions = activeUser.permissions ?? [];
 
     dispatch(
       setSafeUser({
@@ -44,7 +41,7 @@ export default function AuthenticatedNavigation() {
         permissions,
       }),
     );
-  }, [dispatch, isPending, session, meResult]);
+  }, [dispatch, isPending, session]);
 
   async function handleSignOut() {
     setErrorMessage("");
@@ -62,6 +59,8 @@ export default function AuthenticatedNavigation() {
       return;
     }
 
+    dispatch(clearSafeUser());
+    dispatch(dataScopeApi.util.resetApiState());
     router.replace("/login");
   }
 
@@ -75,7 +74,7 @@ export default function AuthenticatedNavigation() {
     { href: "/app/analytics", label: "Analytics", permission: "dataset:analyze" },
     { href: "/app/admin", label: "Administration", permission: "analytics:admin" },
   ].filter(
-    (item) => item.permission === null || hasPermission(session.user.role, item.permission),
+    (item) => item.permission === null || hasPermission(safeUser?.permissions ?? session.user.permissions, item.permission),
   );
 
   return (

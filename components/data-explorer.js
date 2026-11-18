@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { authClient } from "../lib/auth-client.js";
+import { useDataScopeSession } from "../lib/use-data-scope-session.js";
 import { hasPermission } from "../lib/permissions.js";
 import {
   useCreateSavedViewMutation,
@@ -190,9 +190,9 @@ export default function DataExplorer() {
   const { datasetId } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: session, isPending: isCheckingSession } = authClient.useSession();
-  const canUseAdvancedSearch = ["administrator", "dataAnalyst"].includes(session?.user?.role);
-  const canManageSavedViews = ["administrator", "dataAnalyst"].includes(session?.user?.role);
+  const { data: session, isPending: isCheckingSession } = useDataScopeSession();
+  const canUseAdvancedSearch = hasPermission(session?.user?.permissions, "dataset:search:advanced");
+  const canManageSavedViews = hasPermission(session?.user?.permissions, "view:manage:personal");
   const {
     data: datasetsResult,
     error: datasetsError,
@@ -276,7 +276,7 @@ export default function DataExplorer() {
   const [historyError, setHistoryError] = useState("");
   const [viewEdits, setViewEdits] = useState({});
   const [exportError, setExportError] = useState("");
-  const canExport = hasPermission(session?.user?.role, "dataset:export");
+  const canExport = hasPermission(session?.user?.permissions, "dataset:export");
   const historySignatureRef = useRef("");
   const historyFilters = parsedFilterState.filters.map(serializeFilter);
   const historySignature = JSON.stringify({

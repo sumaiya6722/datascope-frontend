@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { authClient } from "../../../../lib/auth-client.js";
+import { useDataScopeSession } from "../../../../lib/use-data-scope-session.js";
 import { hasPermission } from "../../../../lib/permissions.js";
 import {
   useCreateDatasetFieldMutation,
@@ -56,8 +56,8 @@ function FieldOptions({ value, onChange }) {
 export default function DatasetDetailsPage() {
   const { datasetId } = useParams();
   const router = useRouter();
-  const { data: session, isPending } = authClient.useSession();
-  const canManage = hasPermission(session?.user.role, "dataset:manage");
+  const { data: session, isPending } = useDataScopeSession();
+  const canManage = hasPermission(session?.user.permissions, "dataset:manage");
   const {
     data: datasetResult,
     error: datasetError,

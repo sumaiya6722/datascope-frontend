@@ -2,12 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { authClient } from "../../lib/auth-client.js";
+import { useDataScopeSession } from "../../lib/use-data-scope-session.js";
 import { hasPermission } from "../../lib/permissions.js";
 
 export default function ApplicationPage() {
   const router = useRouter();
-  const { data: session, error, isPending } = authClient.useSession();
+  const { data: session, error, isPending } = useDataScopeSession();
 
   useEffect(() => {
     if (!isPending && !session) {
@@ -37,12 +37,12 @@ export default function ApplicationPage() {
         You are signed in as a {session.user.role ?? "viewer"}. Your authenticated
         workspace navigation reflects your current permissions.
       </p>
-      {hasPermission(session.user.role, "dataset:read") && (
+      {hasPermission(session.user.permissions, "dataset:read") && (
         <p className="mt-4 text-sm text-slate-300">
           You can browse datasets you are authorized to access.
         </p>
       )}
-      {hasPermission(session.user.role, "dataset:search:advanced") && (
+      {hasPermission(session.user.permissions, "dataset:search:advanced") && (
         <p className="mt-2 text-sm text-slate-300">
           Advanced search and multi-filter analysis are available to your role.
         </p>

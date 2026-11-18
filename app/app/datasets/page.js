@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useDeleteDatasetMutation, useGetDatasetsQuery } from "../../../store/services/data-scope-api.js";
-import { authClient } from "../../../lib/auth-client.js";
+import { useDataScopeSession } from "../../../lib/use-data-scope-session.js";
 import { hasPermission } from "../../../lib/permissions.js";
 
 function getErrorMessage(error, fallback) {
@@ -13,8 +13,8 @@ function getErrorMessage(error, fallback) {
 
 export default function DatasetsPage() {
   const router = useRouter();
-  const { data: session, isPending } = authClient.useSession();
-  const canManage = hasPermission(session?.user.role, "dataset:manage");
+  const { data: session, isPending } = useDataScopeSession();
+  const canManage = hasPermission(session?.user.permissions, "dataset:manage");
   const {
     data: datasetsResult,
     error,

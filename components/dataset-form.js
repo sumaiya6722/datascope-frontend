@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { authClient } from "../lib/auth-client.js";
+import { useDataScopeSession } from "../lib/use-data-scope-session.js";
 import {
   useCreateDatasetMutation,
   useGetDatasetQuery,
@@ -33,7 +33,7 @@ function slugFromName(name) {
 
 export default function DatasetForm({ datasetId = null }) {
   const router = useRouter();
-  const { data: session, isPending: isCheckingSession } = authClient.useSession();
+  const { data: session, isPending: isCheckingSession } = useDataScopeSession();
   const isEditing = Boolean(datasetId);
   const {
     data: datasetResult,
@@ -47,7 +47,7 @@ export default function DatasetForm({ datasetId = null }) {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [createdDatasetId, setCreatedDatasetId] = useState(null);
-  const canManage = hasPermission(session?.user.role, "dataset:manage");
+  const canManage = hasPermission(session?.user.permissions, "dataset:manage");
 
   useEffect(() => {
     if (!isCheckingSession && !session) {

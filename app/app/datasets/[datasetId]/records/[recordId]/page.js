@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import { authClient } from "../../../../../../lib/auth-client.js";
+import { useDataScopeSession } from "../../../../../../lib/use-data-scope-session.js";
 import {
   useGetDatasetFieldsQuery,
   useGetDatasetQuery,
@@ -25,7 +25,7 @@ function RecordDetailsContent() {
   const { datasetId, recordId } = useParams();
   const searchParams = useSearchParams();
   const explorerHref = `/app/datasets/${datasetId}/explore${searchParams.size ? `?${searchParams.toString()}` : ""}`;
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session, isPending } = useDataScopeSession();
   const {
     data: datasetResult,
     error: datasetError,

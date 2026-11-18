@@ -1,6 +1,7 @@
 "use client";
 
-import { authClient } from "../../../lib/auth-client.js";
+import { useDataScopeSession } from "../../../lib/use-data-scope-session.js";
+import { hasPermission } from "../../../lib/permissions.js";
 import { useGetAnalyticsQuery } from "../../../store/services/data-scope-api.js";
 import {
   Bar,
@@ -53,8 +54,8 @@ function ChartPanel({
 }
 
 export default function AnalyticsPage() {
-  const { data: session, isPending } = authClient.useSession();
-  const canAnalyze = ["administrator", "dataAnalyst"].includes(session?.user?.role);
+  const { data: session, isPending } = useDataScopeSession();
+  const canAnalyze = hasPermission(session?.user?.permissions, "dataset:analyze");
   const { data, error, isLoading } = useGetAnalyticsQuery(undefined, {
     skip: isPending || !session || !canAnalyze,
   });
