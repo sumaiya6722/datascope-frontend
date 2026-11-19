@@ -27,7 +27,7 @@ Built with Next.js (App Router), React, Redux Toolkit / RTK Query, Tailwind CSS,
 ## Features
 
 - **Authentication**: email/password sign-up and sign-in through the backend's Better Auth server, using cookie-based sessions.
-- **Role-aware UI**: navigation, buttons, and pages adapt to the signed-in user's role (`viewer`, `dataAnalyst`, `administrator`).
+- **Permission-aware UI**: navigation, buttons, and pages use the permissions returned by the authenticated backend user (`/api/me`); the backend remains authoritative.
 - **Dataset library**: browse the datasets you are authorized to see; administrators can create, edit, and delete datasets.
 - **Field management**: administrators define each dataset's fields and whether they are searchable, filterable, sortable, and visible by default.
 - **Data Explorer**:
@@ -88,7 +88,7 @@ datascope-frontend/
 │   └── data-explorer.js               # Search, filter, sort, saved views, export
 ├── lib/
 │   ├── auth-client.js                 # Better Auth client (cookies included)
-│   └── permissions.js                 # Role -> permission matrix (mirrors the backend)
+│   └── permissions.js                 # Checks backend-supplied permissions for UI gating
 ├── store/
 │   ├── make-store.js                  # Redux store factory
 │   ├── store-provider.js              # Client-side provider
@@ -181,7 +181,7 @@ Unauthenticated visitors to protected pages are redirected to `/login`.
 
 ## Roles and permissions
 
-`lib/permissions.js` mirrors the backend's role matrix and is used only to **show or hide UI**. The backend re-checks every request, so hiding a button is a convenience, not a security control.
+The backend returns the current user's computed permissions from `/api/me`. `lib/permissions.js` checks those values only to **show or hide UI**; it does not duplicate the role-to-permission policy. The backend re-checks every request, so UI gating is not a security control.
 
 | Capability | Viewer | Data Analyst | Administrator |
 | --- | :---: | :---: | :---: |
@@ -239,10 +239,13 @@ The app uses **Redux Toolkit (RTK)**, the official toolset for Redux, for both c
 
 | Slice | Holds |
 | --- | --- |
-| `authentication` | A sanitized copy of the signed-in user (id, name, email, role, permissions) and an auth status |
-| `uiPreferences` | `theme`, `sidebarCollapsed`, `displayDensity` (defined, not yet consumed by any UI) |
+| `authentication` | Safe display details for the signed-in user (id, name, email, role, permissions) and an auth status |
+| `dataset` | Selected dataset ID |
+| `searchConfiguration` | Client-owned search configuration state |
+| `savedViews` | Saved-view client state |
+| `uiPreferences` | `theme`, `sidebarCollapsed`, `displayDensity` preferences |
 
-**Authentication state.** Sessions are managed by the Better Auth client (`lib/auth-client.js`). `AuthenticatedNavigation` syncs the session and the backend's `/api/me` response (which includes computed permissions) into the `authentication` slice.
+**Authentication state.** Sessions are managed by the Better Auth client (`lib/auth-client.js`). Protected screens use `useDataScopeSession()` to combine Better Auth session validity with `/api/me` role and permission data. The current-user query refreshes every 30 seconds and on focus, so administrator role changes can reach open screens. Sign-out clears both the safe user state and RTK Query cache.
 
 The store is created per-request through `makeStore()` and a `StoreProvider`, the pattern recommended for the Next.js App Router.
 
@@ -277,12 +280,9 @@ There are currently no component or end-to-end tests.
 - `NEXT_PUBLIC_API_URL` is public by design. Keep secrets in the backend only.
 - `.env` is git-ignored. Don't commit it.
 
-## Known issues
+## Known limitations
 
-These were found while documenting the code. Remove this section once they are addressed.
-
-1. **Three Redux slices are dead code.** `dataset-slice.js`, `saved-views-slice.js`, and `search-configuration-slice.js` are never registered in `make-store.js` or imported anywhere. The Data Explorer keeps that state in the URL and in component state instead. They can be deleted or wired in.
-2. **No Google sign-in button.** The backend supports Google OAuth, but the sign-in and register forms only offer email and password.
-3. **Saved views are shared by typing raw user IDs.** There is no user picker in the share field.
-4. **`@better-auth/mongo-adapter` is listed as a dependency but is not used** by the frontend, which only needs `better-auth`.
-5. **`app/api/auth/` is an empty folder.** It can be removed.
+- The backend supports Google OAuth, but the frontend forms currently offer email and password only.
+- Saved views are shared by entering recipient user IDs; there is no user picker.
+- Protected page redirects are client-side. Backend API authorization protects the data even though page code is delivered to the browser.
+- No component or end-to-end test suite is configured; automated frontend tests cover API/store behavior and permission helpers.
