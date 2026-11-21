@@ -8,6 +8,12 @@ Built with Next.js (App Router), React, Redux Toolkit / RTK Query, Tailwind CSS,
 
 🌐 **Frontend:** [View Live Application](https://datascope-frontend-five.vercel.app/)
 
+## Admin Demo Credentials
+
+- **Email:** `babuna@gmail.com`
+- **Password:** `babuna@$9Z`
+
+
 ## Contents
 
 - [Features](#features)

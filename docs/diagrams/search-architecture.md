@@ -2,18 +2,18 @@
 
 ```mermaid
 flowchart TD
-  subgraph FE[Frontend: Data Explorer]
-    User[User enters a search term<br/>or edits filter conditions]
-    Drafts[React component state<br/>draftSearch, draftSearchMode,<br/>draftFilters]
-    Debounce[Search input waits 350 ms<br/>then trims term]
-    ApplyFilters[Apply filters button<br/>checks draft completeness]
-    AppliedURL[Applied search in URL<br/>q, qMode, filters, sort,<br/>page, pageSize]
-    ReadURL[Explorer parses URL state<br/>defaults qMode to partial,<br/>page to 1 and pageSize to default]
-    UseQuery[useGetDatasetRecordsQuery<br/>passes dataset, URL settings,<br/>and requested fields]
-    RTK[RTK Query builds GET request<br/>to /api/datasets/:id/records]
-    Results[Hook provides response data]
-    Display[Data Explorer displays rows,<br/>match total, page number,<br/>sort controls and pagination]
-    UIError[Explorer displays query errors<br/>and loading/fetching states]
+  subgraph FE["Frontend: Data Explorer"]
+    User["User enters a search term<br/>or edits filter conditions"]
+    Drafts["React component state<br/>draftSearch, draftSearchMode,<br/>draftFilters"]
+    Debounce["Search input waits 350 ms<br/>then trims term"]
+    ApplyFilters["Apply filters button<br/>checks draft completeness"]
+    AppliedURL["Applied search in URL<br/>q, qMode, filters, sort,<br/>page, pageSize"]
+    ReadURL["Explorer parses URL state<br/>defaults qMode to partial,<br/>page to 1 and pageSize to default"]
+    UseQuery["useGetDatasetRecordsQuery<br/>passes dataset, URL settings,<br/>and requested fields"]
+    RTK["RTK Query builds GET request<br/>to /api/datasets/:id/records"]
+    Results["Hook provides response data"]
+    Display["Data Explorer displays rows,<br/>match total, page number,<br/>sort controls and pagination"]
+    UIError["Explorer displays query errors<br/>and loading/fetching states"]
     User --> Drafts
     Drafts --> Debounce --> AppliedURL
     Drafts --> ApplyFilters --> AppliedURL
@@ -22,32 +22,32 @@ flowchart TD
     RTK -. loading / error state .-> UIError
   end
 
-  subgraph BE[Backend: Express records route]
-    Receive[Receive GET request]
-    Session[requireAuthentication<br/>validate Better Auth session cookie]
-    Role[requirePermission(dataset:records:read)]
-    DatasetAccess[Check dataset exists and user has read grant<br/>Administrator bypasses dataset grant]
-    ParamCheck[Validate dataset ID, page and pageSize<br/>allowed query keys and bounds]
-    LoadFields[Load DatasetField definitions<br/>for this dataset]
-    SearchInput{Search term present?}
-    Mode{qMode}
-    CheckAdvanced[Require dataset:search:advanced<br/>for exact or text modes]
-    Partial[Partial mode:<br/>searchable text fields;<br/>escape regex punctuation;<br/>case-insensitive regex, unanchored]
-    Exact[Exact mode:<br/>searchable text fields;<br/>escape regex punctuation;<br/>case-insensitive regex ^term$]
-    Text[Text mode:<br/>MongoDB $text: {$search: term};<br/>all indexed fields must be searchable]
-    TextIndex[Configured text index fields:<br/>companyName, industry, country,<br/>category, contact.email]
-    FilterInput{Filters supplied?}
-    FilterCheck[Validate 1–10 conditions;<br/>each field must be filterable;<br/>validate operator/value for data type]
-    MultiCheck{More than one filter?}
-    MultiDenied[Require dataset:filters:multiple<br/>otherwise 403]
-    Combine[Combine filter conditions with AND<br/>and combine with dataset/search criteria]
-    SortCheck[Validate up to 3 distinct sort rules;<br/>each field must be sortable;<br/>default createdAt descending]
-    PageCalc[Compute skip = (page - 1) × pageSize<br/>pageSize max 100]
-    Count[Count matching records]
-    Find[Find matching page with projection;<br/>sort, skip, limit(pageSize)]
-    Shape[Shape response with records,<br/>page, pageSize, totalMatchingRecords,<br/>totalPages, sort, fields, search]
-    BadRequest[Invalid inputs return 400<br/>permission failures return 403<br/>missing session 401 / dataset 404]
-    UserError[Return error response]
+  subgraph BE["Backend: Express records route"]
+    Receive["Receive GET request"]
+    Session["requireAuthentication<br/>validate Better Auth session cookie"]
+    Role["requirePermission(dataset:records:read)"]
+    DatasetAccess["Check dataset exists and user has read grant<br/>Administrator bypasses dataset grant"]
+    ParamCheck["Validate dataset ID, page and pageSize<br/>allowed query keys and bounds"]
+    LoadFields["Load DatasetField definitions<br/>for this dataset"]
+    SearchInput{"Search term present?"}
+    Mode{"qMode"}
+    CheckAdvanced["Require dataset:search:advanced<br/>for exact or text modes"]
+    Partial["Partial mode:<br/>searchable text fields;<br/>escape regex punctuation;<br/>case-insensitive regex, unanchored"]
+    Exact["Exact mode:<br/>searchable text fields;<br/>escape regex punctuation;<br/>case-insensitive regex ^term$"]
+    Text["Text mode:<br/>MongoDB $text: {$search: term};<br/>all indexed fields must be searchable"]
+    TextSearchFields["Configured text index fields:<br/>companyName, industry, country,<br/>category, contact.email"]
+    FilterInput{"Filters supplied?"}
+    FilterCheck["Validate 1–10 conditions;<br/>each field must be filterable;<br/>validate operator/value for data type"]
+    MultiCheck{"More than one filter?"}
+    MultiDenied["Require dataset:filters:multiple<br/>otherwise 403"]
+    Combine["Combine filter conditions with AND<br/>and combine with dataset/search criteria"]
+    SortCheck["Validate up to 3 distinct sort rules;<br/>each field must be sortable;<br/>default createdAt descending"]
+    PageCalc["Compute skip = (page - 1) × pageSize<br/>pageSize max 100"]
+    Count["Count matching records"]
+    Find["Find matching page with projection;<br/>sort, skip, limit(pageSize)"]
+    Shape["Shape response with records,<br/>page, pageSize, totalMatchingRecords,<br/>totalPages, sort, fields, search"]
+    BadRequest["Invalid inputs return 400<br/>permission failures return 403<br/>missing session 401 / dataset 404"]
+    UserError["Return error response"]
 
     Receive --> Session
     Session -->|valid| Role
@@ -64,11 +64,11 @@ flowchart TD
     Mode -->|partial| Partial --> FilterInput
     Mode -->|exact| CheckAdvanced
     Mode -->|text| CheckAdvanced
-    CheckAdvanced -->|allowed| ModeSearchBranch{Requested advanced mode}
+    CheckAdvanced -->|allowed| ModeSearchBranch{"Requested advanced mode"}
     CheckAdvanced -->|denied| BadRequest
     ModeSearchBranch -->|exact| Exact
     ModeSearchBranch -->|text and fields valid| Text
-    Text -. requires configured fields .-> TextIndex
+    Text -. requires configured fields .-> TextSearchFields
     ModeSearchBranch -->|text fields missing| BadRequest
     Exact --> FilterInput
     Text --> FilterInput
@@ -86,11 +86,11 @@ flowchart TD
     BadRequest --> UserError
   end
 
-  subgraph DB[Database: MongoDB accessed through Mongoose]
-    FieldCollection[(datasetFields collection<br/>DatasetField model)]
-    RecordCollection[(records collection<br/>DatasetRecord model)]
-    TextIndex[(MongoDB text index<br/>companyName, industry, country,<br/>category, contact.email)]
-    Found[Matching record documents]
+  subgraph DB["Database: MongoDB accessed through Mongoose"]
+    FieldCollection["(datasetFields collection<br/>DatasetField model)"]
+    RecordCollection["(records collection<br/>DatasetRecord model)"]
+    TextIndex["(MongoDB text index<br/>companyName, industry, country,<br/>category, contact.email)"]
+    Found["Matching record documents"]
     LoadFields --> FieldCollection
     FieldCollection --> LoadFields
     Partial --> RecordCollection

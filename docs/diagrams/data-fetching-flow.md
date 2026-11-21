@@ -2,23 +2,23 @@
 
 ```mermaid
 flowchart TD
-  subgraph FE[Frontend: Next.js / React]
-    Open[User opens Data Explorer]
-    ReadURL[Read applied URL parameters<br/>q, qMode, filters, sort,<br/>page, pageSize]
-    Hooks[DataExplorer calls RTK Query hooks<br/>including useGetDatasetRecordsQuery]
-    QueryKey[Endpoint + serialized arguments<br/>identify this records query]
-    CacheCheck{Matching RTK Query<br/>cache entry available?}
-    Reuse[Reuse cached result<br/>no records request sent]
-    Loading[Hook exposes loading/fetching state<br/>Explorer shows loading/updating message]
-    Build[Build GET URL and query string<br/>page, pageSize, sort, fields,<br/>q, qMode, filters]
-    Send[HTTP request with credentials: include<br/>GET /api/datasets/:datasetId/records]
-    Receive[Receive JSON response]
-    CacheStore[Store result in RTK Query cache<br/>provide DatasetRecords tag for dataset]
-    Render[Render current page of rows<br/>and page/count controls]
-    ClientError[Hook exposes request error<br/>Explorer shows records error message]
-    Mutate[Related mutation succeeds<br/>e.g. dataset deletion or field change]
-    Invalidate[Mutation invalidates configured tags]
-    Refetch[If an invalidated query has an active subscriber,<br/>RTK Query refetches it]
+  subgraph FE["Frontend: Next.js / React"]
+    Open["User opens Data Explorer"]
+    ReadURL["Read applied URL parameters<br/>q, qMode, filters, sort,<br/>page, pageSize"]
+    Hooks["DataExplorer calls RTK Query hooks<br/>including useGetDatasetRecordsQuery"]
+    QueryKey["Endpoint + serialized arguments<br/>identify this records query"]
+    CacheCheck{"Matching RTK Query<br/>cache entry available?"}
+    Reuse["Reuse cached result<br/>no records request sent"]
+    Loading["Hook exposes loading/fetching state<br/>Explorer shows loading/updating message"]
+    Build["Build GET URL and query string<br/>page, pageSize, sort, fields,<br/>q, qMode, filters"]
+    Send["HTTP request with credentials: include<br/>GET /api/datasets/:datasetId/records"]
+    Receive["Receive JSON response"]
+    CacheStore["Store result in RTK Query cache<br/>provide DatasetRecords tag for dataset"]
+    Render["Render current page of rows<br/>and page/count controls"]
+    ClientError["Hook exposes request error<br/>Explorer shows records error message"]
+    Mutate["Related mutation succeeds<br/>e.g. dataset deletion or field change"]
+    Invalidate["Mutation invalidates configured tags"]
+    Refetch["If an invalidated query has an active subscriber,<br/>RTK Query refetches it"]
 
     Open --> ReadURL --> Hooks --> QueryKey --> CacheCheck
     CacheCheck -->|Yes| Reuse --> Render
@@ -29,25 +29,25 @@ flowchart TD
     Mutate --> Invalidate --> Refetch --> Build
   end
 
-  subgraph BE[Backend: Express]
-    Route[Match dataset records route]
-    Auth[requireAuthentication<br/>Better Auth validates session from request headers/cookie]
-    AuthFail[No valid session: return 401]
-    Role[requirePermission(dataset:records:read)<br/>check role capability]
-    RoleFail[Role lacks capability: return 403]
-    Grant[Check dataset read access<br/>Administrator bypasses per-dataset grant]
-    GrantFail[No read grant: return 403<br/>missing dataset: 404]
-    Validate[Validate dataset ID and query parameters<br/>page/pageSize, allowed keys, fields, sort,<br/>search mode, filters, field metadata]
-    ValidationFail[Invalid parameter or filter: return 400<br/>disallowed search/filter capability: 403]
-    Query[Build MongoDB filter and projection<br/>count matching rows; calculate skip]
-    Limited[Fetch only requested fields and page<br/>sort → skip → limit (maximum pageSize 100)]
-    Shape[Shape JSON response<br/>records, page, pageSize, total count/pages]
-    HandleError[Route errors go to Express error handler<br/>JSON error response]
-    CsvRoute[Match CSV export route<br/>POST /api/datasets/:datasetId/export/csv]
-    CsvAuth[Validate session and dataset:export role permission]
-    CsvGrant[Check dataset read and export grants<br/>Administrator bypasses grants]
-    CsvValidate[Validate export mode, fields, IDs,<br/>filters/search and 5,000-row cap]
-    CsvQuery[Query matching records and build CSV<br/>synchronously]
+  subgraph BE["Backend: Express"]
+    Route["Match dataset records route"]
+    Auth["requireAuthentication<br/>Better Auth validates session from request headers/cookie"]
+    AuthFail["No valid session: return 401"]
+    Role["requirePermission(dataset:records:read)<br/>check role capability"]
+    RoleFail["Role lacks capability: return 403"]
+    Grant["Check dataset read access<br/>Administrator bypasses per-dataset grant"]
+    GrantFail["No read grant: return 403<br/>missing dataset: 404"]
+    Validate["Validate dataset ID and query parameters<br/>page/pageSize, allowed keys, fields, sort,<br/>search mode, filters, field metadata"]
+    ValidationFail["Invalid parameter or filter: return 400<br/>disallowed search/filter capability: 403"]
+    Query["Build MongoDB filter and projection<br/>count matching rows; calculate skip"]
+    Limited["Fetch only requested fields and page<br/>sort → skip → limit (maximum pageSize 100)"]
+    Shape["Shape JSON response<br/>records, page, pageSize, total count/pages"]
+    HandleError["Route errors go to Express error handler<br/>JSON error response"]
+    CsvRoute["Match CSV export route<br/>POST /api/datasets/:datasetId/export/csv"]
+    CsvAuth["Validate session and dataset:export role permission"]
+    CsvGrant["Check dataset read and export grants<br/>Administrator bypasses grants"]
+    CsvValidate["Validate export mode, fields, IDs,<br/>filters/search and 5,000-row cap"]
+    CsvQuery["Query matching records and build CSV<br/>synchronously"]
     Route --> Auth
     Auth -->|valid| Role
     Auth -->|invalid| AuthFail
@@ -64,10 +64,10 @@ flowchart TD
     CsvRoute --> CsvAuth --> CsvGrant --> CsvValidate --> CsvQuery
   end
 
-  subgraph DB[Database: MongoDB through Mongoose]
-    Records[(records collection<br/>DatasetRecord model)]
-    Fields[(datasetFields collection<br/>DatasetField model)]
-    Results[Matching record documents]
+  subgraph DB["Database: MongoDB through Mongoose"]
+    Records["(records collection<br/>DatasetRecord model)"]
+    Fields["(datasetFields collection<br/>DatasetField model)"]
+    Results["Matching record documents"]
     Fields -. field definitions read for validation .-> Validate
     Query --> Records
     Records --> Results --> Limited
@@ -81,15 +81,15 @@ flowchart TD
   ValidationFail -->|HTTP error| ClientError
   HandleError -->|HTTP error| ClientError
 
-  subgraph CSV[Separate implemented CSV export branch]
-    ExportAction[User selects rows or filtered results]
-    ExportHook[useExportDatasetCsvMutation]
-    ExportHTTP[POST /api/datasets/:datasetId/export/csv<br/>credentials included]
-    ExportAuth[Backend CSV route checks session,<br/>dataset:export role permission and dataset grants]
-    ExportDB[MongoDB query for selected or filtered rows]
-    CSVResponse[CSV response up to 5,000 records<br/>larger request returns 413]
-    Blob[RTK Query response handler returns Blob<br/>component starts browser download]
-    ExportError[Mutation error state shown in Explorer]
+  subgraph CSV["Separate implemented CSV export branch"]
+    ExportAction["User selects rows or filtered results"]
+    ExportHook["useExportDatasetCsvMutation"]
+    ExportHTTP["POST /api/datasets/:datasetId/export/csv<br/>credentials included"]
+    ExportAuth["Backend CSV route checks session,<br/>dataset:export role permission and dataset grants"]
+    ExportDB["MongoDB query for selected or filtered rows"]
+    CSVResponse["CSV response up to 5,000 records<br/>larger request returns 413"]
+    Blob["RTK Query response handler returns Blob<br/>component starts browser download"]
+    ExportError["Mutation error state shown in Explorer"]
     ExportAction --> ExportHook --> ExportHTTP --> CsvRoute
     CsvQuery --> ExportDB --> CSVResponse --> Blob
     ExportHTTP -. request failure .-> ExportError
